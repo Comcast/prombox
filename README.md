@@ -35,6 +35,7 @@ The Prometheus UI is accessible at `https://localhost:9090`
 #### Required
 ```bash
 export PROMETHEUS_ADDRESS=http://localhost:9090
+export PROMETHEUS_FRAME_ADDRESS=http://localhost:9090
 export PROMETHEUS_CONFIG=$(pwd)/prometheus/prometheus.yml
 ```
 #### Optional
@@ -61,6 +62,7 @@ export CORS_ALLOW_ORIGIN=http://localhost:8080 (default: empty)
 2. Run API at :3000
     ```
     export PROMETHEUS_ADDRESS=http://localhost:9090
+    export PROMETHEUS_FRAME_ADDRESS=http://localhost:9090
     export PROMETHEUS_CONFIG=$(pwd)/prometheus/prometheus.yml
     export CORS_ALLOW_ORIGIN=http://localhost:8080
     make run-api-dev
@@ -82,22 +84,15 @@ make lint
 ### Unit Tests
 Run unit tests for ui
 ```
-make test-unit-ui
+make test-ui
 ```
 
 Run unit tests for go
 ```
-make test-unit-api
+make test-api
 ```
 
 Run unit tests for both ui and go
 ```
-make test-unit
-```
-
-### E2E Tests
-
-Run e2e tests with cypress
-```
-make test-e2e
+make test
 ```
