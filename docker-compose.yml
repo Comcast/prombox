@@ -1,0 +1,36 @@
+version: "2.2"
+networks:
+  prombox-net:
+    driver: bridge
+volumes:
+  prometheus-volume:
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - prometheus-volume:/etc/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+    restart: always
+    ports:
+      - 9090:9090
+    networks:
+      - prombox-net
+
+  prombox:
+    image: prombox
+    container_name: prombox
+    restart: unless-stopped
+    environment:
+      - PROMETHEUS_ADDRESS=http://prometheus:9090
+      - PROMETHEUS_FRAME_ADDRESS=http://localhost:9090
+      - PROMETHEUS_CONFIG=/prometheus/prometheus.yml
+    ports:
+      - 3000:3000
+    networks:
+      - prombox-net
+    volumes:
+      - prometheus-volume:/prometheus

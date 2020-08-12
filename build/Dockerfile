@@ -1,0 +1,13 @@
+FROM alpine
+
+COPY prombox-cflinuxfs3 /go/bin/prombox
+
+ARG PROMETHEUS_ADDRESS
+ARG PROMETHEUS_CONFIG
+
+ENV PROMETHEUS_ADDRESS ${PROMETHEUS_ADDRESS:-http://localhost:9090}
+ENV PROMETHEUS_CONFIG ${PROMETHEUS_CONFIG:-/prometheus/prometheus.yml}
+
+ENTRYPOINT /go/bin/prombox
+
+EXPOSE 3000

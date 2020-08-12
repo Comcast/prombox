@@ -1,0 +1,44 @@
+{
+  "name": "prombox",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "test:unit": "vue-cli-service test:unit",
+    "test:e2e": "vue-cli-service test:e2e",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "acorn": "^6.4.1",
+    "axios": "^0.19.2",
+    "core-js": "^3.6.5",
+    "jwt-decode": "^2.2.0",
+    "lodash": "^4.17.19",
+    "nprogress": "^0.2.0",
+    "serialize-javascript": "^3.1.0",
+    "tailwindcss": "^1.4.6",
+    "vue": "^2.6.10",
+    "vue-analytics": "^5.22.1",
+    "vue-router": "^3.3.4",
+    "vuex": "^3.4.0"
+  },
+  "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^2.3.0",
+    "@vue/cli-plugin-babel": "^4.1.0",
+    "@vue/cli-plugin-e2e-cypress": "^4.4.1",
+    "@vue/cli-plugin-eslint": "^4.1.0",
+    "@vue/cli-plugin-router": "^4.1.0",
+    "@vue/cli-plugin-unit-jest": "^4.1.0",
+    "@vue/cli-plugin-vuex": "^4.1.0",
+    "@vue/cli-service": "^4.4.4",
+    "@vue/eslint-config-prettier": "^5.0.0",
+    "@vue/test-utils": "1.0.0-beta.29",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^5.16.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-vue": "^5.0.0",
+    "prettier": "^1.19.1",
+    "vue-template-compiler": "^2.6.10"
+  }
+}
