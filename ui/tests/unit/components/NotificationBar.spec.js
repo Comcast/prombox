@@ -29,7 +29,7 @@ describe("NotificationBar", () => {
         }
       }
     });
-    expect(wrapper.text()).toBe("Oops!  A mistake was made  Close");
+    expect(wrapper.text()).toBe("Oops! A mistake was made  Close");
   });
 
   test("show error notification with custom header", () => {
@@ -42,7 +42,7 @@ describe("NotificationBar", () => {
         }
       }
     });
-    expect(wrapper.text()).toBe("My Bad!  A mistake was made  Close");
+    expect(wrapper.text()).toBe("My Bad! A mistake was made  Close");
   });
 
   test("show success notification", () => {
@@ -54,7 +54,7 @@ describe("NotificationBar", () => {
         }
       }
     });
-    expect(wrapper.text()).toBe("Success!  Good things happened  Close");
+    expect(wrapper.text()).toBe("Success! Good things happened  Close");
   });
 
   test("show success notification with custom header", () => {
@@ -67,7 +67,7 @@ describe("NotificationBar", () => {
         }
       }
     });
-    expect(wrapper.text()).toBe("Yay!  Good things happened  Close");
+    expect(wrapper.text()).toBe("Yay! Good things happened  Close");
   });
 
   test("show info notification", () => {
@@ -79,7 +79,7 @@ describe("NotificationBar", () => {
         }
       }
     });
-    expect(wrapper.text()).toBe("FYI:  I have something to say  Close");
+    expect(wrapper.text()).toBe("FYI: I have something to say  Close");
   });
 
   test("show info notification with custom header", () => {
@@ -92,7 +92,7 @@ describe("NotificationBar", () => {
         }
       }
     });
-    expect(wrapper.text()).toBe("Attention!  I have something to say  Close");
+    expect(wrapper.text()).toBe("Attention! I have something to say  Close");
   });
 
   test("info notification is default", () => {
@@ -103,7 +103,7 @@ describe("NotificationBar", () => {
         }
       }
     });
-    expect(wrapper.text()).toBe("FYI:  I have something to say  Close");
+    expect(wrapper.text()).toBe("FYI: I have something to say  Close");
   });
 
   test("click to close notification will emit close-notification", () => {
