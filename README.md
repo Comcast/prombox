@@ -23,7 +23,7 @@ make build
 
 ### Build Docker Image
 ```
-docker build -t prombox -f build/package/Dockerfile .
+docker build -t prombox -f build/Dockerfile .
 ```
 
 ### Run docker-compose
