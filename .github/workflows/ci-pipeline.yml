@@ -33,10 +33,6 @@ jobs:
         
     - name: Get npm dependencies
       run: npm ci --prefix ui
-    - name: npm build
-      run: npm run --prefix ui build
-    - name: npm test
-      run: npm run --prefix ui test:unit
 
     - name: Get go dependencies
       run: |
@@ -45,9 +41,13 @@ jobs:
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
         fi
+        
+    - name: npm build
+      run: npm run --prefix ui build -- --modern
     - name: go generate assets for UI
       run: cd ui && go generate -x -v && cd ..
     - name: go build
-      run: go build -v .
-    - name: go test
-      run: go test -v .
+      run: make build-api
+    
+    - name: Test
+      run: make test
