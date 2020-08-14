@@ -15,20 +15,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x]
+        node-version: [12.x, 14.x]
+        go-version: [^1.13]
     steps:
 
     - name: Checkout Source
       uses: actions/checkout@v2
     
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Set up Go 1.x
+    
+    - name: Setup Go ${{ matrix.go-version }}
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.13
+        go-version: ${{ matrix.go-version }}
       id: go
         
     - name: Get npm dependencies
