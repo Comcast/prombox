@@ -10,47 +10,44 @@ on:
     branches: [ main ]
 
 jobs:
-  verify-ui:
-    name: Verify UI
+  verify:
+    name: Verify
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [10.x, 12.x, 14.x]
     steps:
+
     - name: Checkout Source
       uses: actions/checkout@v2
+    
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: Get dependencies
-      run: npm ci --prefix ui
-    - name: Build
-      run: npm run --prefix ui build --if-present
-    - name: Test
-      run: npm run --prefix ui test:unit
-
-  verify-api:
-    name: Verify API
-    runs-on: ubuntu-latest
-    steps:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
         go-version: ^1.13
       id: go
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
-    - name: Get dependencies
+        
+    - name: Get npm dependencies
+      run: npm ci --prefix ui
+    - name: npm build
+      run: npm run --prefix ui build
+    - name: npm test
+      run: npm run --prefix ui test:unit
+
+    - name: Get go dependencies
       run: |
         go get -v -t -d ./...
         if [ -f Gopkg.toml ]; then
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
         fi
-    - name: Generate Assets for UI
+    - name: go generate assets for UI
       run: cd ui && go generate -x -v && cd ..
-    - name: Build
+    - name: go build
       run: go build -v .
-    - name: Test
+    - name: go test
       run: go test -v .
