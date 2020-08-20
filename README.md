@@ -1,6 +1,4 @@
-[![License](https://img.shields.io/github/license/Comcast/prombox)](/LICENSE)
-
-[![CI Pipeline Workflow](https://github.com/Comcast/prombox/workflows/CI%20Pipeline/badge.svg?branch=main)](https://github.com/Comcast/prombox/actions?query=workflow%3A%22CI+Pipeline%22+branch%3A%22main%22)
+[![License](https://img.shields.io/github/license/Comcast/prombox)](/LICENSE) [![CI Pipeline Workflow](https://github.com/Comcast/prombox/workflows/CI%20Pipeline/badge.svg?branch=main)](https://github.com/Comcast/prombox/actions?query=workflow%3A%22CI+Pipeline%22+branch%3A%22main%22)
 
 # Prombox
 Sandbox environment for editing and testing prometheus configuration on the fly.
