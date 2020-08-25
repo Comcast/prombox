@@ -79,7 +79,7 @@ check_assets: build-assets
 
 .PHONY: build-api
 build-api:
-	env GOOS=linux GOARCH=amd64 $(GO) build ${LDFLAGS} -o ${BINARY_CF_LINUX_AMD64} .
+	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build ${LDFLAGS} -o ${BINARY_CF_LINUX_AMD64} .
 	env GOOS=darwin GOARCH=amd64 $(GO) build ${LDFLAGS} -o ${BINARY_LOCAL_AMD64} .
 
 # Run/Serve API and UI in Development Mode
