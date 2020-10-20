@@ -36,7 +36,7 @@ docker-compose up
 
 The Prombox UI is accessible at `http://localhost:3000`
 
-The Prometheus UI is accessible at `https://localhost:9090`
+The Prometheus UI is accessible at `http://localhost:9090`
 
 ## Run and Test Locally
 
