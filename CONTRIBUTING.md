@@ -21,4 +21,4 @@ Should you wish to work on an issue, please claim it first by commenting on the 
 
 If you have questions about one of the issues, please comment on them and one of the maintainers will clarify it.
 
-For complete instructions on how to compile see: [Run & Test Locally](https://github.com/Comcast/prombox#building-and-test-locally)
+For complete instructions on how to compile see: [Run & Test Locally](https://github.com/Comcast/prombox#run-and-test-locally)
