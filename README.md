@@ -106,3 +106,19 @@ Run unit tests for both ui and go
 ```
 make test
 ```
+
+## Upgrading Dependencies
+
+### Prometheus
+https://github.com/prometheus/prometheus/issues/7663
+https://github.com/prometheus/prometheus/issues/9302
+
+`go get github.com/prometheus/prometheus@v2.28.1` doesn't work because prometheus doesn't follow golang version semantics. Instead, use one of the following commands:
+
+- `go get github.com/prometheus/prometheus@release-2.28`
+- `go get github.com/prometheus/prometheus@b094459` (Given that `b094459` is the commit for `v2.28.1`)
+
+In both cases, you will see `github.com/prometheus/prometheus v1.8.2-0.20210701133801-b0944590a1c9` in the `go.mod` file.
+
+### Go mody tidy
+Clean up the go.sum file with `go mod tidy`
