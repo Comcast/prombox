@@ -23,8 +23,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Comcast/prombox/api/prometheus"
+	golog "github.com/go-kit/log"
 	"github.com/prometheus/prometheus/config"
+
+	"github.com/Comcast/prombox/api/prometheus"
 )
 
 //ConfigurationInput models config input
@@ -47,7 +49,7 @@ func WritePrometheusConfigHandlerFunc(promClient prometheus.Client) func(w http.
 			return
 		}
 
-		validatedConfig, err := config.Load(strings.TrimLeft(configInput.Content, " "))
+		validatedConfig, err := config.Load(strings.TrimLeft(configInput.Content, " "), false, golog.NewNopLogger())
 		if err != nil {
 			errMsg := fmt.Sprintf("error validating prometheus configuration: %s", err.Error())
 			log.Println(errMsg)
