@@ -61,7 +61,7 @@ export CORS_ALLOW_ORIGIN=http://localhost:8080 (default: empty)
     docker run \
         -p 9090:9090 \
         --mount type=bind,source="$(pwd)"/prometheus/prometheus.yml,target=/etc/prometheus/prometheus.yml \
-        prom/prometheus \
+        prom/prometheus:v2.28.1 \
         --web.enable-lifecycle \
         --config.file=/etc/prometheus/prometheus.yml \
         --storage.tsdb.path=/prometheus \
