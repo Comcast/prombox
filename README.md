@@ -122,3 +122,9 @@ In both cases, you will see `github.com/prometheus/prometheus v1.8.2-0.202107011
 
 ### Go mody tidy
 Clean up the go.sum file with `go mod tidy`
+
+## Copyright and License
+This project is made available under the [Apache License, Version 2.0](LICENSE). Copyright information can be found in [NOTICE](NOTICE).
+
+## Code of Conduct
+See the [Code of Conduct](CODE_OF_CONDUCT.md).
