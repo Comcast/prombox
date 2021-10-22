@@ -1,6 +1,6 @@
 module github.com/Comcast/prombox
 
-go 1.14
+go 1.16
 
 require (
 	github.com/go-kit/log v0.2.0
