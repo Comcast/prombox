@@ -18,24 +18,26 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/go-kit/log"
 
 	"github.com/Comcast/prombox/api/version"
 )
 
 //VersionHandlerFunc handles version API requests
-func VersionHandlerFunc(version version.BuildInfo) func(w http.ResponseWriter, r *http.Request) {
+func VersionHandlerFunc(version version.BuildInfo, logger log.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		if err := json.NewEncoder(w).Encode(version); err != nil {
-			log.Panic(err)
+			logger.Log("err", err.Error())
+			panic(err)
 		}
 	}
 }
 
 //VersionHandler handles version API requests
-func VersionHandler(version version.BuildInfo) http.Handler {
-	return http.HandlerFunc(VersionHandlerFunc(version))
+func VersionHandler(version version.BuildInfo, logger log.Logger) http.Handler {
+	return http.HandlerFunc(VersionHandlerFunc(version, logger))
 }

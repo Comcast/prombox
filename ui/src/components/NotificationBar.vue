@@ -22,10 +22,10 @@ limitations under the License.
     role="alert"
   >
     <div class="block sm:inline">
-      <strong class="font-bold">{{ notificationHeader }}</strong>
+      <strong class="font-bold mr-2">{{ notificationHeader }}</strong>
       <span>{{ notification.message }}</span>
     </div>
-    <div v-if="notification.details" class="block">{{ notification.details }}</div>
+    <div v-if="notification.details" class="block" style="white-space: pre-wrap">{{ notification.details }}</div>
 
     <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
       <svg

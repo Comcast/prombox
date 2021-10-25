@@ -56,10 +56,10 @@ describe("Prombox page", () => {
     expect(wrapper.find("textarea").exists()).toBeTruthy();
     expect(wrapper.find("textarea").element.value).toBe("textarea-input");
     expect(wrapper.find("textarea").attributes("placeholder")).toBe(
-      "Click `Reset` to fetch the current configuration"
+      "Click `Fetch` to fetch the current configuration"
     );
 
-    expect(wrapper.find("button#resetBtn").text()).toBe("Reset");
+    expect(wrapper.find("button#fetchBtn").text()).toBe("Fetch");
     expect(wrapper.find("button#saveBtn").text()).toBe("Save");
   });
 
@@ -81,7 +81,7 @@ describe("Prombox page", () => {
       localVue,
       store: mockStore
     });
-    wrapper.find("button#resetBtn").trigger("click");
+    wrapper.find("button#fetchBtn").trigger("click");
     await Vue.nextTick();
 
     expect(wrapper.vm.$data.input).toBe(mockYaml);
@@ -103,7 +103,7 @@ describe("Prombox page", () => {
       localVue,
       store: mockStore
     });
-    wrapper.find("button#resetBtn").trigger("click");
+    wrapper.find("button#fetchBtn").trigger("click");
     await Vue.nextTick();
 
     expect(wrapper.vm.$data.input).toBe("");
@@ -131,7 +131,7 @@ describe("Prombox page", () => {
       localVue,
       store: mockStore
     });
-    wrapper.find("button#resetBtn").trigger("click");
+    wrapper.find("button#fetchBtn").trigger("click");
     await Vue.nextTick();
 
     expect(wrapper.vm.$data.input).toBe("");
@@ -180,7 +180,10 @@ describe("Prombox page", () => {
         response: {
           status: 500,
           statusText: "Internal Server Error",
-          data: "Something went wrong"
+          data: {
+            message: "Something went wrong",
+            error: "That was some bad yaml"
+          }
         }
       });
     });
@@ -203,8 +206,8 @@ describe("Prombox page", () => {
     expect(mockStore.state.notification.list.length).toBe(1);
     expect(mockStore.state.notification.list[0]).toMatchObject({
       type: "error",
-      message: "There was a problem saving prometheus configuration.",
-      details: '500 Internal Server Error: "Something went wrong"'
+      message: "There was a problem saving prometheus configuration: Something went wrong",
+      details: "That was some bad yaml"
     });
   });
 });

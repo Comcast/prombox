@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 
 	"github.com/Comcast/prombox/api/config"
@@ -29,7 +30,7 @@ import (
 )
 
 //NewAPI creates a new API
-func NewAPI(version version.BuildInfo, conf config.Config) http.Handler {
+func NewAPI(version version.BuildInfo, conf config.Config, logger log.Logger) http.Handler {
 
 	httpClient := &http.Client{
 		Timeout: 60 * time.Second,
@@ -37,68 +38,69 @@ func NewAPI(version version.BuildInfo, conf config.Config) http.Handler {
 	prometheusClient := prometheus.Client{
 		Info:       conf.Prometheus,
 		HTTPClient: httpClient,
+		Logger:     logger,
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.Path("/api/health").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("Healthcheck",
+			handlers.AccessLogHandler(log.With(logger, "handler", "Healthcheck"),
 				handlers.HealthCheckHandler())))
 
 	router.Path("/api/version").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("Version",
-				handlers.VersionHandler(version))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "Version"),
+				handlers.VersionHandler(version, logger))))
 
 	router.Path("/api/prombox/info").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("PromboxInfo",
+			handlers.AccessLogHandler(log.With(logger, "handler", "PromboxInfo"),
 				handlers.GetPromboxInfoHandler(*conf.Prometheus))))
 
 	router.Path("/api/prombox/configuration").Methods(http.MethodPost, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("WritePrometheusConfig",
-				handlers.WritePrometheusConfigHandler(prometheusClient))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "WritePrometheusConfig"),
+				handlers.WritePrometheusConfigHandler(prometheusClient, logger))))
 
 	router.Path("/api/prometheus/status/config").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("GetPrometheus",
-				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/config"))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "GetPrometheus"),
+				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/config", logger))))
 
 	router.Path("/api/prometheus/status/flags").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("GetPrometheus",
-				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/flags"))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "GetPrometheus"),
+				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/flags", logger))))
 
 	router.Path("/api/prometheus/status/runtimeinfo").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("GetPrometheus",
-				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/runtimeinfo"))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "GetPrometheus"),
+				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/runtimeinfo", logger))))
 
 	router.Path("/api/prometheus/status/buildinfo").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("GetPrometheus",
-				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/buildinfo"))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "GetPrometheus"),
+				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/buildinfo", logger))))
 
 	router.Path("/api/prometheus/status/tsdb").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("GetPrometheus",
-				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/tsdb"))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "GetPrometheus"),
+				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/status/tsdb", logger))))
 
 	router.Path("/api/prometheus/targets").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("GetPrometheus",
-				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/targets"))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "GetPrometheus"),
+				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/targets", logger))))
 
 	router.Path("/api/prometheus/rules").Methods(http.MethodGet, http.MethodOptions).Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("GetPrometheus",
-				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/rules"))))
+			handlers.AccessLogHandler(log.With(logger, "handler", "GetPrometheus"),
+				handlers.GetPrometheusHandler(prometheusClient, "/api/v1/rules", logger))))
 
 	router.Path("/api/prometheus/query").Methods(http.MethodGet, http.MethodOptions).Name("PrometheusQuery").Handler(
 		handlers.CorsHandler(*conf.Cors,
-			handlers.LoggerHandler("PrometheusQuery",
+			handlers.AccessLogHandler(log.With(logger, "handler", "PrometheusQuery"),
 				handlers.GetPrometheusQueryHandler(prometheusClient))))
 
 	router.Use(mux.CORSMethodMiddleware(router))

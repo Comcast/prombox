@@ -19,17 +19,21 @@
 package main
 
 import (
-	"log"
-
 	"net/http"
 	"os"
 
+	"github.com/go-kit/log"
 	"github.com/shurcooL/httpfs/filter"
 	"github.com/shurcooL/vfsgen"
 )
 
 func main() {
-	log.Println("UI asset generation starts...")
+
+	var logger log.Logger
+	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
+
+	logger.Log("msg", "starting UI asset generation")
 
 	var ui http.FileSystem = filter.Keep(
 		http.Dir("./dist"),
@@ -44,8 +48,9 @@ func main() {
 		VariableName: "Assets",
 	})
 	if uiGenErr != nil {
-		log.Fatalln(uiGenErr)
+		logger.Log("fatal", uiGenErr.Error())
+		os.Exit(1)
 	}
 
-	log.Println("asset generation completed successfully...")
+	logger.Log("msg", "asset generation completed successfully")
 }

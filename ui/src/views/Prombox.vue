@@ -26,13 +26,13 @@ limitations under the License.
       <textarea
         class="flex-1 p-2 text-grey-800 bg-transparent"
         rows="15"
-        placeholder="Click `Reset` to fetch the current configuration"
+        placeholder="Click `Fetch` to fetch the current configuration"
         v-model="input"
       />
     </div>
 
     <div class="m-1">
-      <Button class="m-1" id="resetBtn" @click="getConfiguration">Reset</Button>
+      <Button class="m-1" id="fetchBtn" @click="getConfiguration">Fetch</Button>
       <Button class="m-1" id="saveBtn" @click="updateConfiguration">Save</Button>
     </div>
   </div>
@@ -99,12 +99,20 @@ export default {
         })
         .catch(error => {
           this.loading = false;
-          const errorMsg = getStringFromApiError(error);
-          const notification = {
-            type: "error",
-            message: "There was a problem saving prometheus configuration.",
-            details: errorMsg
-          };
+          var notification;
+          if (error.response && error.response.data && error.response.data.message && error.response.data.error) {
+            notification = {
+              type: "error",
+              message: "There was a problem saving prometheus configuration: " + error.response.data.message,
+              details: error.response.data.error
+            };
+          } else {
+            notification = {
+              type: "error",
+              message: "There was a problem saving prometheus configuration.",
+              details: getStringFromApiError(error)
+            };
+          }
           this.$store.dispatch("notification/add", notification, {
             root: true
           });

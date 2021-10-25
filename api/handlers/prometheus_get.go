@@ -18,23 +18,23 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+
+	"github.com/go-kit/log"
 
 	"github.com/Comcast/prombox/api/prometheus"
 )
 
 //GetPrometheusHandlerFunc is the prometheus handler
-func GetPrometheusHandlerFunc(promClient prometheus.Client, path string) func(w http.ResponseWriter, r *http.Request) {
+func GetPrometheusHandlerFunc(promClient prometheus.Client, path string, logger log.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		result, status, err := promClient.Get(path)
 		if err != nil {
-			errMsg := fmt.Sprintf("Error executing GET %s: %s", path, err.Error())
-			log.Println(errMsg)
+			logger.Log("err", err.Error(), "path", path)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Header().Set("Content-Type", "plain/text; charset=UTF-8")
-			fmt.Fprint(w, errMsg)
+			fmt.Fprint(w, fmt.Sprintf("Error executing GET %s: %s", path, err.Error()))
 			return
 		}
 		w.WriteHeader(status)
@@ -44,6 +44,6 @@ func GetPrometheusHandlerFunc(promClient prometheus.Client, path string) func(w 
 }
 
 //GetPrometheusHandler is the prometheus handler
-func GetPrometheusHandler(promClient prometheus.Client, path string) http.Handler {
-	return http.HandlerFunc(GetPrometheusHandlerFunc(promClient, path))
+func GetPrometheusHandler(promClient prometheus.Client, path string, logger log.Logger) http.Handler {
+	return http.HandlerFunc(GetPrometheusHandlerFunc(promClient, path, logger))
 }

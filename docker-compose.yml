@@ -1,24 +1,38 @@
 version: "2.2"
 networks:
-  prombox-net:
+  sandbox:
     driver: bridge
-volumes:
-  prometheus-volume:
 services:
   prometheus:
     image: prom/prometheus:v2.28.1
     container_name: prometheus
     volumes:
-      - prometheus-volume:/etc/prometheus
+      - ./data/prometheus:/etc/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.path=/etc/prometheus/tmp"
       - "--web.enable-lifecycle"
     restart: always
     ports:
       - 9090:9090
     networks:
-      - prombox-net
+      - sandbox
+
+  alertmanger:
+    image: prom/alertmanager:v0.22.0
+    container_name: alertmanager
+    volumes:
+      - ./data/alertmanager:/etc/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/etc/alertmanager/tmp'
+      - '--log.level=info'
+    restart: always
+    ports:
+      - 9093:9093
+      - 9094:9094
+    networks:
+      - sandbox
 
   prombox:
     image: prombox
@@ -27,10 +41,10 @@ services:
     environment:
       - PROMETHEUS_ADDRESS=http://prometheus:9090
       - PROMETHEUS_FRAME_ADDRESS=http://localhost:9090
-      - PROMETHEUS_CONFIG=/prometheus/prometheus.yml
+      - PROMETHEUS_CONFIG=/etc/data/prometheus/prometheus.yml
     ports:
       - 3000:3000
     networks:
-      - prombox-net
+      - sandbox
     volumes:
-      - prometheus-volume:/prometheus
+      - ./data:/etc/data:rw

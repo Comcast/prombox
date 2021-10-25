@@ -10,6 +10,9 @@ ui/tests/e2e/screenshots
 
 docs/site
 
+data/alertmanager/tmp/
+data/prometheus/tmp
+
 # Log files
 npm-debug.log*
 yarn-debug.log*

@@ -1,0 +1,66 @@
+route:
+
+# LYNCEUS ROUTE CONFIGURATION. DO NOT EDIT.
+  group_by: ['alertname']
+  # How long to initially wait to send a notification for a group
+  # of alerts. Allows to wait for an inhibiting alert to arrive or collect
+  # more initial alerts for the same group. (Usually ~0s to few minutes.)
+  group_wait: 5m
+  # How long to wait before sending a notification about new alerts that
+  # are added to a group of alerts for which an initial notification has
+  # already been sent. (Usually ~5m or more.)
+  group_interval: 10m
+  # How long to wait before sending a notification again if it has already
+  # been sent successfully for an alert. (Usually ~3h or more).
+  repeat_interval: 2h
+  receiver: 'lynceus-slack'
+  routes:
+  - match:
+      application: lynceus
+    routes:
+    - receiver: 'lynceus-slack'
+      match:
+        severity: warning
+      repeat_interval: 4h
+      continue: true
+    - receiver: 'lynceus-slack'
+      match:
+        severity: critical
+      continue: true
+    - receiver: 'lynceus-pagerduty'
+      match:
+        severity: critical
+      repeat_interval: 4h
+      continue: true
+# END LYNCEUS ROUTE CONFIGURATION. ADD CONFIGURATION FOR ADDITIONAL CLIENT ROUTES BELOW.
+
+receivers:
+
+# LYNCEUS RECEIVERS CONFIGURATION. DO NOT EDIT.
+- name: 'lynceus-slack'
+  slack_configs:
+  - send_resolved: true
+    title: "{{ .CommonLabels.alertname }} {{  .CommonLabels.severity }}"
+    title_link: "{{ .ExternalURL }}"
+    pretext: "Client: {{ .CommonLabels.client }} - Environment: {{ .CommonLabels.env }} - Region: {{ .CommonLabels.region }}"
+    text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+    username: 'Alerts'
+    channel: '#lynceus-monitoring'
+    api_url: 'https://fake.com'
+- name: 'lynceus-pagerduty'
+  pagerduty_configs:
+  - routing_key: 'fake-key'
+    description: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
+# END LYNCEUS RECEIVERS CONFIGURATION. ADD CONFIGURATION FOR ADDITIONAL CLIENT RECEIVERS BELOW.
+
+inhibit_rules:
+
+# LYNCEUS INHIBIT_RULES CONFIGURATION. DO NOT EDIT.
+- target_matchers:
+  - application = lynceus
+  - severity = warning
+  source_matchers:
+  - application = lynceus
+  - severity = critical
+  equal: [ 'alertname', 'client', 'env', 'instance' ]
+# END LYNCEUS INHIBIT_RULES CONFIGURATION. ADD CONFIGURATION FOR ADDITIONAL CLIENT INHIBIT_RULES BELOW.

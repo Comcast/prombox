@@ -17,10 +17,12 @@
 package main
 
 import (
-	"log"
 	"net/http"
+	"os"
 	"path"
 	"time"
+
+	"github.com/go-kit/log"
 
 	"github.com/Comcast/prombox/api"
 	"github.com/Comcast/prombox/api/config"
@@ -39,10 +41,15 @@ var gitBranch = ""
 
 func main() {
 
+	var logger log.Logger
+	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
+
 	//Read configuration from Environment Variables.
 	config, err := config.FromEnvironmentVariables(config.OsEnvVars{})
 	if err != nil {
-		log.Fatal("Config ERROR:", err)
+		logger.Log("msg", "fatal error loading configuration", "err", err.Error())
+		os.Exit(1)
 	}
 
 	buildInfo := version.BuildInfo{
@@ -62,14 +69,18 @@ func main() {
 	}
 
 	// Endpoints for the API and Vue client
-	apiHandler := api.NewAPI(buildInfo, *config)
+	apiHandler := api.NewAPI(buildInfo, *config, logger)
 	http.Handle("/api/", apiHandler)
 
-	uiHandler := handlers.LoggerHandler("uiHandler", http.FileServer(SinglePageApplication{ui.Assets}))
+	uiHandler := handlers.AccessLogHandler(log.With(logger, "hander", "uiHandler"), http.FileServer(SinglePageApplication{ui.Assets}))
 	http.Handle("/", uiHandler)
 
-	log.Println("Listening on", config.Port, ", cors.AllowOrigin="+config.Cors.AllowOrigin)
-	log.Fatal(server.ListenAndServe())
+	logger.Log("port", config.Port, "cors.AllowOrigin", config.Cors.AllowOrigin)
+	fatalErr := server.ListenAndServe()
+	if fatalErr != nil {
+		logger.Log("msg", "fatal serve error", "err", fatalErr.Error())
+		os.Exit(1)
+	}
 }
 
 //SinglePageApplication is a Vue integration
