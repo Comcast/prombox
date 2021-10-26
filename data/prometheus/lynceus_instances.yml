@@ -1,0 +1,5 @@
+- targets:
+  - localhost:9090
+  - localhost:9093
+  - prometheus:9090
+  - alertmanager:9093

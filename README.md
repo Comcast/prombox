@@ -56,11 +56,11 @@ export CORS_ALLOW_ORIGIN=http://localhost:8080 (default: empty)
 
 ### Run
 
-1. Run Prometheus at :9090 (using configuration in `/prometheus/prometheus.yml`)
+1. Run Prometheus at :9090 (using configuration in `/data/prometheus/prometheus.yml`)
     ```
     docker run \
         -p 9090:9090 \
-        --mount type=bind,source="$(pwd)"/prometheus/prometheus.yml,target=/etc/prometheus/prometheus.yml \
+        --mount type=bind,source="$(pwd)"/data/prometheus/prometheus.yml,target=/etc/prometheus/prometheus.yml \
         prom/prometheus:v2.28.1 \
         --web.enable-lifecycle \
         --config.file=/etc/prometheus/prometheus.yml \
@@ -68,12 +68,22 @@ export CORS_ALLOW_ORIGIN=http://localhost:8080 (default: empty)
         --web.console.libraries=/etc/prometheus/console_libraries \
         --web.console.templates=/etc/prometheus/consoles
     ```
+1. Run Alertmanager at :9093 (using configuration in `/data/alertmanager/alertmanager.yml`)
+    ```
+    docker run \
+        -p 9093:9093 -p 9094:9094 \
+        --mount type=bind,source="$(pwd)"/data/alertmanager/alertmanager.yml,target=/etc/alertmanager/alertmanager.yml \
+        prom/alertmanager:v0.22.0 \
+        --config.file=/etc/alertmanager/alertmanager.yml \
+        --storage.path=/alertmanager \
+        --log.level=info
+    ```
 
 2. Run API at :3000
     ```
     export PROMETHEUS_ADDRESS=http://localhost:9090
     export PROMETHEUS_FRAME_ADDRESS=http://localhost:9090
-    export PROMETHEUS_CONFIG=$(pwd)/prometheus/prometheus.yml
+    export PROMETHEUS_CONFIG=$(pwd)/data/prometheus/prometheus.yml
     export CORS_ALLOW_ORIGIN=http://localhost:8080
     make run-api-dev
     ```

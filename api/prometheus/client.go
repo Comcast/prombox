@@ -19,8 +19,9 @@ package prometheus
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
+
+	"github.com/go-kit/log"
 
 	"github.com/Comcast/prombox/api/config"
 )
@@ -34,67 +35,69 @@ type HTTPClient interface {
 type Client struct {
 	Info       *config.PrometheusInfo
 	HTTPClient HTTPClient
+	Logger     log.Logger
 }
 
 //Get gets client
-func (promClient Client) Get(path string) (*string, int, error) {
+func (pc Client) Get(path string) (*string, int, error) {
 	//Build Request
-	url := fmt.Sprintf("%s%s", promClient.Info.Address, path)
+	url := fmt.Sprintf("%s%s", pc.Info.Address, path)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Println(err)
+		pc.Logger.Log("err", err.Error())
 		return nil, 0, err
 	}
 	//Execute
-	responseBody, statusCode, err := executeRequest(promClient.HTTPClient, request)
+	responseBody, statusCode, err := pc.executeRequest(request)
 	return responseBody, statusCode, err
 }
 
 //GetQuery https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries
-func (promClient Client) GetQuery(query string) (*string, int, error) {
+func (pc Client) GetQuery(query string) (*string, int, error) {
 
 	//Build Request
-	url := fmt.Sprintf("%s/api/v1/query", promClient.Info.Address)
+	url := fmt.Sprintf("%s/api/v1/query", pc.Info.Address)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Println(err)
+		pc.Logger.Log("err", err.Error())
 		return nil, 0, err
 	}
 	q := request.URL.Query()
 	q.Add("query", query)
 	request.URL.RawQuery = q.Encode()
 	//Execute
-	responseBody, statusCode, err := executeRequest(promClient.HTTPClient, request)
+	responseBody, statusCode, err := pc.executeRequest(request)
 	return responseBody, statusCode, err
 }
 
 //Reload https://prometheus.io/docs/prometheus/latest/management_api/#reload
-func (promClient Client) Reload() (*string, int, error) {
+func (pc Client) Reload() (*string, int, error) {
 
 	//Build Request
-	url := fmt.Sprintf("%s/-/reload", promClient.Info.Address)
+	url := fmt.Sprintf("%s/-/reload", pc.Info.Address)
 	request, err := http.NewRequest("POST", url, nil)
 	if err != nil {
-		log.Println(err)
+		pc.Logger.Log("err", err.Error())
 		return nil, 0, err
 	}
 	//Execute
-	responseBody, statusCode, err := executeRequest(promClient.HTTPClient, request)
+	responseBody, statusCode, err := pc.executeRequest(request)
+	pc.Logger.Log("msg", "prometheus reload", "status", statusCode)
 	return responseBody, statusCode, err
 }
 
-func executeRequest(client HTTPClient, request *http.Request) (*string, int, error) {
+func (pc Client) executeRequest(request *http.Request) (*string, int, error) {
 	//Execute Request
-	response, err := client.Do(request)
+	response, err := pc.HTTPClient.Do(request)
 	if err != nil {
-		log.Println(err)
+		pc.Logger.Log("err", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	//Read Response
 	defer response.Body.Close()
 	responseData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Println(err)
+		pc.Logger.Log("err", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	result := string(responseData)

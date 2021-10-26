@@ -18,14 +18,15 @@ package prometheus
 
 import (
 	"io/ioutil"
-	"log"
+
+	"github.com/go-kit/log"
 )
 
 //ReadFile reads file
-func ReadFile(filePath string) (string, error) {
+func ReadFile(filePath string, logger log.Logger) (string, error) {
 	bytes, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		log.Println("Read file error", err)
+		logger.Log("msg", "read file error", "err", err.Error())
 		return "", err
 	}
 	content := string(bytes)
@@ -33,11 +34,11 @@ func ReadFile(filePath string) (string, error) {
 }
 
 //WriteFile writes file
-func WriteFile(filePath string, content string) (string, error) {
+func WriteFile(filePath string, content string, logger log.Logger) (string, error) {
 	err := ioutil.WriteFile(filePath, []byte(content), 05555)
 	if err != nil {
-		log.Println("Write file error", err)
+		logger.Log("msg", "write file error", "err", err.Error())
 		return "", err
 	}
-	return ReadFile(filePath)
+	return ReadFile(filePath, logger)
 }

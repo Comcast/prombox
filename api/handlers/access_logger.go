@@ -17,27 +17,26 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/go-kit/log"
 )
 
-//LoggerHandler wraps the handler to log requests and response
-func LoggerHandler(name string, inner http.Handler) http.Handler {
+//AccessLogHandler wraps the handler to log requests and response
+func AccessLogHandler(logger log.Logger, inner http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		lrw := NewLoggingResponseWriter(w)
 		inner.ServeHTTP(lrw, r)
 
-		log.Printf(
-			"type=access_log method=%s uri=%s statusCode=%d name=%s duration=%s",
-			r.Method,
-			r.RequestURI,
-			lrw.statusCode,
-			name,
-			time.Since(start),
-		)
+		logger.Log(
+			"type", "access_log",
+			"method", r.Method,
+			"uri", r.RequestURI,
+			"status", lrw.statusCode,
+			"duration", time.Since(start).String())
 	})
 }
 

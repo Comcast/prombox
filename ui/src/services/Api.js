@@ -33,9 +33,9 @@ export default {
   getPromboxVersion() {
     return client.get("/api/version");
   },
-  updatePrometheusConfiguration(config) {
+  updatePrometheusConfiguration(promConfig) {
     return client.post("/api/prombox/configuration", {
-      content: config
+      prometheus_config: promConfig
     });
   },
   getPrometheusConfiguration() {

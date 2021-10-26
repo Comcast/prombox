@@ -18,82 +18,130 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
-	"strings"
-
-	golog "github.com/go-kit/log"
-	"github.com/prometheus/prometheus/config"
 
 	"github.com/Comcast/prombox/api/prometheus"
+	"github.com/go-kit/log"
 )
 
-//ConfigurationInput models config input
-type ConfigurationInput struct {
-	Content string `json:"content"`
+type RequestBody struct {
+	PrometheusConfig string `json:"prometheus_config"`
+}
+
+type ResponseBody struct {
+	Status      int    `json:"status,omitempty"`
+	Message     string `json:"message,omitempty"`
+	Error       string `json:"error,omitempty"`
+	SavedConfig string `json:"saved_config,omitempty"`
+}
+
+//WritePrometheusConfigHandler writes prometheus config
+func WritePrometheusConfigHandler(promClient prometheus.Client, logger log.Logger) http.Handler {
+	return http.HandlerFunc(WritePrometheusConfigHandlerFunc(promClient, logger))
 }
 
 //WritePrometheusConfigHandlerFunc writes prometheus config
-func WritePrometheusConfigHandlerFunc(promClient prometheus.Client) func(w http.ResponseWriter, r *http.Request) {
+func WritePrometheusConfigHandlerFunc(promClient prometheus.Client, logger log.Logger) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		configInput := ConfigurationInput{}
-		err := json.NewDecoder(r.Body).Decode(&configInput)
+		var input RequestBody
+		err := json.NewDecoder(r.Body).Decode(&input)
 		if err != nil {
-			errMsg := fmt.Sprintf("error decoding request body: %s", err.Error())
-			log.Println(errMsg)
+			logger.Log("msg", "error decoding request body", "err", err.Error())
+
 			w.WriteHeader(http.StatusBadRequest)
-			w.Header().Set("Content-Type", "plain/text; charset=UTF-8")
-			fmt.Fprint(w, errMsg)
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			json.NewEncoder(w).Encode(ResponseBody{
+				Message: "error decoding request body",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		validatedConfig, err := config.Load(strings.TrimLeft(configInput.Content, " "), false, golog.NewNopLogger())
+		originalYaml := getOriginalConfig(promClient, logger)
+
+		writtenContent, err := prometheus.WriteFile(promClient.Info.ConfigFile, input.PrometheusConfig, logger)
 		if err != nil {
-			errMsg := fmt.Sprintf("error validating prometheus configuration: %s", err.Error())
-			log.Println(errMsg)
+			logger.Log("msg", "error writing file", "err", err.Error())
+
 			w.WriteHeader(http.StatusBadRequest)
-			w.Header().Set("Content-Type", "plain/text; charset=UTF-8")
-			fmt.Fprint(w, errMsg)
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			json.NewEncoder(w).Encode(ResponseBody{
+				Message: "error writing file",
+				Error:   err.Error(),
+			})
 			return
 		}
 
-		writtenContent, err := prometheus.WriteFile(promClient.Info.ConfigFile, validatedConfig.String())
+		respBody, status, err := promClient.Reload()
 		if err != nil {
-			errMsg := fmt.Sprintf("error writting file: %s", err.Error())
-			log.Println(errMsg)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Header().Set("Content-Type", "plain/text; charset=UTF-8")
-			fmt.Fprint(w, errMsg)
-			return
-		}
-
-		_, status, err := promClient.Reload()
-		if err != nil {
-			errMsg := fmt.Sprintf("error reloading prometheus: %s", err.Error())
-			log.Println(errMsg)
+			logger.Log("msg", "error reloading prometheus", "err", err.Error())
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Header().Set("Content-Type", "plain/text; charset=UTF-8")
-			fmt.Fprint(w, errMsg)
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			json.NewEncoder(w).Encode(ResponseBody{
+				Message: "error reloading prometheus",
+				Error:   err.Error(),
+			})
+			defer saveOriginalConfig(originalYaml, promClient, logger)
 			return
 		}
 		if status != http.StatusOK {
-			errMsg := fmt.Sprintf("error reloading prometheus: response status %d", status)
-			log.Println(errMsg)
+			logger.Log("msg", "error reloading prometheus", "status", status, "response", *respBody)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Header().Set("Content-Type", "plain/text; charset=UTF-8")
-			fmt.Fprint(w, errMsg)
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			json.NewEncoder(w).Encode(ResponseBody{
+				Status:  status,
+				Message: "error reloading prometheus",
+				Error:   *respBody,
+			})
+			defer saveOriginalConfig(originalYaml, promClient, logger)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		fmt.Fprint(w, `{"saved": "`+writtenContent+`"}`)
+		json.NewEncoder(w).Encode(ResponseBody{
+			Message:     "success",
+			SavedConfig: writtenContent,
+		})
 	}
 }
 
-//WritePrometheusConfigHandler writes prometheus config
-func WritePrometheusConfigHandler(promClient prometheus.Client) http.Handler {
-	return http.HandlerFunc(WritePrometheusConfigHandlerFunc(promClient))
+func getOriginalConfig(promClient prometheus.Client, logger log.Logger) string {
+	respStr, status, err := promClient.Get("/api/v1/status/config")
+	if err != nil {
+		logger.Log("msg", "error fetching original configuration", "status", status, "err", err.Error())
+		return ""
+	}
+	if status != http.StatusOK {
+		logger.Log("msg", "error fetching original configuration", "status", status, "err", respStr)
+		return ""
+	}
+
+	var resp struct {
+		Status string `json:"status"`
+		Data   struct {
+			Yaml string `json:"yaml"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(*respStr), &resp); err != nil {
+		logger.Log("msg", "error decoding response string", "err", err.Error())
+		return ""
+	}
+
+	return resp.Data.Yaml
+}
+
+func saveOriginalConfig(originalYaml string, promClient prometheus.Client, logger log.Logger) {
+	if originalYaml == "" {
+		logger.Log("msg", "skip saving original configuration", "err", "original configuration is empty")
+		return
+	}
+	if _, err := prometheus.WriteFile(promClient.Info.ConfigFile, originalYaml, logger); err != nil {
+		logger.Log("msg", "error writing file with original configuration", "err", err.Error())
+		return
+	}
+	if respBody, status, err := promClient.Reload(); err != nil {
+		logger.Log("msg", "error reloading prometheus with original configuration", "err", err.Error(), "status", status, "response", respBody)
+	}
 }
